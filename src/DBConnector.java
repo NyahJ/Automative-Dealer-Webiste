@@ -41,7 +41,6 @@ public class DBConnector {
 
     public ResultSet getAllData() throws SQLException {
         String query = "select * from Automobiles";
-        System.out.println(query);
         data = runQuery(query);
         return data;
     }
