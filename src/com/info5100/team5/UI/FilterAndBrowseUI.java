@@ -1,11 +1,16 @@
 package com.info5100.team5.UI;
 
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.awt.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import com.info5100.team5.DAO.DBConnector;
 import com.info5100.team5.DAO.PrepareData;
@@ -20,7 +25,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 	private JTextField textField;
 	private JButton btnNewButton;
     private JFrame frame;
-    private JLabel  year,mileagelabel1, pricelabel,brandLabel, modelLabel, typeLabel, categoryLabel, colorLabel, priceLabel,
+    private JLabel  startlabel,year,mileagelabel1, pricelabel,brandLabel, modelLabel, typeLabel, categoryLabel, colorLabel, priceLabel,
             priceMinLabel, priceMaxLabel, yearLabel, mileageLabel,brandvalue, modelvalue, yearvalue,categoryvalue, colorvalue, mileagevalue,pricevalue,space,empty;
     private JComboBox brand, model, type, category, color, priceMin, priceMax, selectYear, mileage;
     private JButton clearBtn;
@@ -80,6 +85,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         selectYear.setEditable(false);
         mileage.setEditable(false);
 
+        startlabel=new JLabel("***NEW/USED VEHICLES***");
         brandLabel = new JLabel("  Brand");
         modelLabel = new JLabel("  Model");
         typeLabel = new JLabel("  Type");
@@ -92,6 +98,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         mileageLabel = new JLabel("  Mileage");
 
         Font font1 = new Font("Courier", Font.PLAIN, 16);
+        Font font2 = new Font("Courier", Font.BOLD, 22);
         brandLabel.setFont(font1);
         modelLabel.setFont(font1);
         typeLabel.setFont(font1);
@@ -102,21 +109,39 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         priceMaxLabel.setFont(font1);
         yearLabel.setFont(font1);
         mileageLabel.setFont(font1);
+        startlabel.setFont(font1);
 
     }
 
     /*
      * this method creates the panel for the UI components and adds it to the frame
      */
-    public void buildPanelAndFrame() {
+    public void buildPanelAndFrame() throws IOException {
+    	
+    	JLabel imageLabel=new JLabel();
+    	String path = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSC4vdqyjdI2Zz713z7WWoiEjPK3nzO9FSUM3vJQZgaB-Hc9l6qe_hNcKMWkHVX3MvJ3ow&usqp=CAU";
+
+
+    	URL url = new URL(path);
+        BufferedImage image = null;
+        image = ImageIO.read(url);
+        ImageIcon icon = new ImageIcon(image);
+        imageLabel.setIcon(icon);
+        //imageLabel.setText("");
+    	
         JPanel p = new JPanel();
-        p.setPreferredSize(new Dimension(1500, 0));
+        p.setPreferredSize(new Dimension(1500,10));
         JPanel p1 = new JPanel();
-        p1.setBackground(Color.BLUE);
-        p.setBackground(Color.PINK);
-        p1.setPreferredSize(new Dimension(1500, 60));
+        p1.setBackground(Color.white);
+        p.setBackground(Color.LIGHT_GRAY);
+        p1.setPreferredSize(new Dimension(1500, 120));
+        
         JPanel p2 = new JPanel(); 
         JPanel p3 = new JPanel(); 
+        p3.setPreferredSize(new Dimension(1500, 80));
+        p3.setBackground(Color.WHITE);
+        p1.add(imageLabel);
+        p1.add(startlabel);
         p1.add(textField);
         p1.add(btnNewButton);
         p.add(brandLabel);
@@ -143,6 +168,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         p.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         p2.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         displayAllData(container);
+        frame.add(p3, BorderLayout.NORTH);
         frame.add(p, BorderLayout.WEST);
         frame.add(p1, BorderLayout.NORTH);
     }
@@ -165,6 +191,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
                 vehicle.setYear(rs.getString(5));
                 vehicle.setType(rs.getString(6));
                 String category = rs.getString(7);
+               // rs.getBLO
                 if (category.equals("NEW")) {
                     vehicle.setCategory("NEW");
                 } else {
@@ -230,10 +257,13 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
      frame.add(container, BorderLayout.SOUTH);
         ArrayList<VehicleDetails> list = getAllData();
         JPanel basepanel = new JPanel();
-        basepanel.setBackground(Color.GREEN);;
-        BoxLayout bl = new BoxLayout(basepanel, BoxLayout.Y_AXIS);
+        basepanel.setBackground(Color.DARK_GRAY);;
+   //     BoxLayout bl = new BoxLayout(basepanel, BoxLayout.PAGE_AXIS);
         container.add(basepanel);
-        basepanel.setLayout(bl);
+        JScrollPane sp = new JScrollPane(basepanel);
+        container.add(sp);
+        basepanel.setLayout(new GridLayout());
+        //basepanel.setPreferredSize(new Dimension(100, 100));
 
         if (list.size() == 0) {
             JPanel panelempty = new JPanel();
@@ -247,6 +277,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             VehicleDetails car = list.get(i);
             JPanel panel = new JPanel();
             FlowLayout fl = new FlowLayout();
+            //BoxLayout bl2 = new BoxLayout(basepanel, BoxLayout.PAGE_AXIS);
             panel.setLayout(fl);
             buildSortedComponent(panel, car, i);
             panel.setBorder(BorderFactory.createBevelBorder(1));
@@ -268,7 +299,8 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         filtered.add(basePanel);
         JScrollPane sp = new JScrollPane(basePanel);
         filtered.add(sp);
-        basePanel.setLayout(bl);
+       // filtered.setLayout(new GridLayout());
+        basePanel.setLayout(new GridLayout());
         if (list.size() == 0) {
             JPanel panelempty = new JPanel();
             panelempty.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -374,6 +406,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
+                	//System.out.println(vehicle.getImage());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -382,6 +415,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         });
 
         panel.add(jp1);
+        panel.setPreferredSize(new Dimension(330, 500));
     }
 
 	/*
@@ -494,7 +528,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
  * This method does the frame operations such as setting size, visibility, and closing
  */
     public void frameOperations() {
-        frame.setSize(900, 600);
+        frame.setSize(500, 500);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
