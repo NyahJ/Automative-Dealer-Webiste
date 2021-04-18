@@ -165,6 +165,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         p.add(yearLabel);
         p.add(selectYear);
         p.add(clearBtn);
+        //p.setBounds(0,600,1000,1000);
         p.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         p2.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         displayAllData(container);
@@ -262,7 +263,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         container.add(basepanel);
         JScrollPane sp = new JScrollPane(basepanel);
         container.add(sp);
-        basepanel.setLayout(new GridLayout());
+        basepanel.setLayout(new GridBagLayout());
         //basepanel.setPreferredSize(new Dimension(100, 100));
 
         if (list.size() == 0) {
@@ -297,10 +298,11 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         JPanel basePanel = new JPanel();
         BoxLayout bl = new BoxLayout(basePanel, BoxLayout.Y_AXIS);
         filtered.add(basePanel);
+        basePanel.setBackground(Color.DARK_GRAY);
         JScrollPane sp = new JScrollPane(basePanel);
         filtered.add(sp);
        // filtered.setLayout(new GridLayout());
-        basePanel.setLayout(new GridLayout());
+        basePanel.setLayout(new GridBagLayout());
         if (list.size() == 0) {
             JPanel panelempty = new JPanel();
             panelempty.setLayout(new FlowLayout(FlowLayout.CENTER));
