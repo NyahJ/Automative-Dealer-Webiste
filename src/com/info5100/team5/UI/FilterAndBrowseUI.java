@@ -8,12 +8,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Vector;
+import java.util.stream.Collectors;
 import java.awt.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import com.info5100.team5.Controller.FilterAndSearchController;
 import com.info5100.team5.DAO.DBConnector;
-import com.info5100.team5.DAO.PrepareData;
 import com.info5100.team5.DTO.VehicleDetails;
 
 
@@ -30,18 +33,32 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     private JComboBox brand, model, type, category, color, priceMin, priceMax, selectYear, mileage;
     private JButton clearBtn;
     private Button viewDetailBtn;
-    
-
-    public FilterAndBrowseUI() {
-    	dbConn = new DBConnector();
-    }
+    private ArrayList<VehicleDetails> completeList;
     
     
     Container container = getContentPane();
-    PrepareData br = new PrepareData();
+   // PrepareData br = new PrepareData();
     String dealerID = "";
-    DBConnector dbConn;
+    FilterAndSearchController filterAndSearchController;
+    
+    
 
+    public FilterAndBrowseUI() throws SQLException {
+    	filterAndSearchController =new FilterAndSearchController();
+    	completeList=filterAndSearchController.getAllCars();
+    }
+    
+    
+
+    public void buildUseCase2UI() throws Exception {
+        this.buildComponent();
+        this.buildPanelAndFrame();
+        this.addListener();
+        this.frameOperations();
+
+    }
+   
+    
 /*
  * this method creates all the UI components required for search and sort
  */
@@ -62,14 +79,20 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 		btnNewButton.setBounds(920, 120, 102, 33);
 		//frame.getContentPane().add(btnNewButton);
     	
-		brand = new JComboBox(br.fetchData(dbConn.fetchDistinctValues("brand")));
-    	//brand = new JComboBox(sd.fetchData(dbConn.filterValues("brand")));
-    	//brand.setBounds(295, 269, 29, 21);
-        type = new JComboBox(br.fetchData(dbConn.fetchDistinctValues("type")));
-        category = new JComboBox(br.fetchData(dbConn.fetchDistinctValues("category")));
-        color = new JComboBox(br.fetchData(dbConn.fetchDistinctValues("color")));
+		
+		brand = new JComboBox(filterAndSearchController.getValidOption("brand",completeList));
+		//System.out.println(getValidOption("brand",completeList).toString());
+    	
+        type = new JComboBox(filterAndSearchController.getValidOption("type",completeList));
+        
+        category = new JComboBox(filterAndSearchController.getValidOption("category",completeList));
+        
+        color = new JComboBox(filterAndSearchController.getValidOption("color",completeList));
+        
         mileage = new JComboBox(new String[]{"0-2000", "2000-3000", "3000-5000", "5000-6000"});
-        model = new JComboBox(new String[]{"SEDAN","SUV"});
+        
+        model = new JComboBox(filterAndSearchController.getValidOption("model",completeList));
+        
         priceMin = new JComboBox(new String[]{"0", "1000", "2000", "3000", "4000", "5000"});
         priceMax = new JComboBox(new String[]{"15000", "25000", "35000", "45000", "55000", "65000"});
         selectYear = new JComboBox(new String[]{"2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019","2020","2021"});
@@ -113,10 +136,14 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 
     }
 
-    /*
+    
+    
+    
+
+	/*
      * this method creates the panel for the UI components and adds it to the frame
      */
-    public void buildPanelAndFrame() throws IOException {
+    public void buildPanelAndFrame() throws IOException, SQLException {
     	
     	JLabel imageLabel=new JLabel();
     	String path = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSC4vdqyjdI2Zz713z7WWoiEjPK3nzO9FSUM3vJQZgaB-Hc9l6qe_hNcKMWkHVX3MvJ3ow&usqp=CAU";
@@ -168,95 +195,19 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         //p.setBounds(0,600,1000,1000);
         p.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         p2.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        displayAllData(container);
+        displayAllData(container,this.completeList);
         frame.add(p3, BorderLayout.NORTH);
         frame.add(p, BorderLayout.WEST);
         frame.add(p1, BorderLayout.NORTH);
     }
-
-   /*
-    * This method fetches all the vehicles data and creates a complete list for it
-    */
-    public ArrayList<VehicleDetails> getAllData() {
-        ResultSet rs;
-        ArrayList<VehicleDetails> completeList = new ArrayList<VehicleDetails>();
-
-        try {
-            rs = dbConn.fetchAllData();
-            while (rs.next()) {
-            	VehicleDetails vehicle = new VehicleDetails();
-
-                vehicle.setId(rs.getString(1));
-                vehicle.setBrand(rs.getString(3));
-                vehicle.setModel(rs.getString(4));
-                vehicle.setYear(rs.getString(5));
-                vehicle.setType(rs.getString(6));
-                String category = rs.getString(7);
-               // rs.getBLO
-                if (category.equals("NEW")) {
-                    vehicle.setCategory("NEW");
-                } else {
-                    vehicle.setCategory("USED");
-                }
-                vehicle.setColor(rs.getString(8));
-                float price = Float.parseFloat(rs.getString(9));
-                vehicle.setPrice(price);
-                float mileage = Float.parseFloat(rs.getString(10));
-                vehicle.setMileage(mileage);
-                completeList.add(vehicle);
-            }
-        } catch (SQLException se) {
-            se.printStackTrace();
-        }
-		return completeList;
-    }
-    
-    /*
-     * This method takes the word to be searched from the search box and creates the data to be searched in database
-     */
-    public void getSearchResult(String searchWord) {
-    	String wordFormed=null;
-    	container.removeAll();
-    	
-    	 ArrayList<VehicleDetails> list = getAllData();
-    	 for (VehicleDetails vehi : list) {
-			
-    		 if(vehi.getModel().equalsIgnoreCase(searchWord)) {
-    			 wordFormed="model =" + "'"+searchWord+"'";
-    			 displaySortedData(container, wordFormed);
-    		 }
-    		 
-    		 if(vehi.getBrand().equalsIgnoreCase(searchWord)) {
-    			 wordFormed="brand =" + "'"+searchWord+"'";
-    			 displaySortedData(container, wordFormed);
-    		 }
-    		 
-    		 if(vehi.getColor().equalsIgnoreCase(searchWord)) {
-    			 wordFormed="color =" + "'"+searchWord+"'";
-    			 displaySortedData(container, wordFormed);
-    		 }
-    		 
-    		 if(vehi.getCategory().equalsIgnoreCase(searchWord)) {
-    			 wordFormed="category =" + "'"+searchWord+"'";
-    			 displaySortedData(container, wordFormed);
-    		 }
-    		 
-    		 if(vehi.getType().equalsIgnoreCase(searchWord)) {
-    			 wordFormed="type =" + "'"+searchWord+"'";
-    			 displaySortedData(container, wordFormed);
-    		 }
-		}
-    	 
-		    }
-    
     
     /*
      * This method displays all the vehicle details on UI
      */
-    public void displayAllData(Container container) {
+    public void displayAllData(Container container,ArrayList<VehicleDetails> completeList) throws SQLException {
     	container.revalidate();
      frame.add(container, BorderLayout.SOUTH);
-        ArrayList<VehicleDetails> list = getAllData();
+       // ArrayList<VehicleDetails> list = filterAndSearchController.getAllCars();
         JPanel basepanel = new JPanel();
         basepanel.setBackground(Color.DARK_GRAY);;
    //     BoxLayout bl = new BoxLayout(basepanel, BoxLayout.PAGE_AXIS);
@@ -266,7 +217,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         basepanel.setLayout(new GridBagLayout());
         //basepanel.setPreferredSize(new Dimension(100, 100));
 
-        if (list.size() == 0) {
+        if (completeList.size() == 0) {
             JPanel panelempty = new JPanel();
             panelempty.setLayout(new FlowLayout(FlowLayout.CENTER));
             this.empty = new JLabel("Not Available");
@@ -274,8 +225,8 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             basepanel.add(panelempty);
 
         }
-        for (int i = 0; i < list.size(); i++) {
-            VehicleDetails car = list.get(i);
+        for (int i = 0; i < completeList.size(); i++) {
+            VehicleDetails car = completeList.get(i);
             JPanel panel = new JPanel();
             FlowLayout fl = new FlowLayout();
             //BoxLayout bl2 = new BoxLayout(basepanel, BoxLayout.PAGE_AXIS);
@@ -288,13 +239,22 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         }
     }
 
-    
     /*
      * This method displays only the sorted vehicle details on UI
      */
-    public void displaySortedData(Container filtered, String searchString) {
+    public void displaySortedData(Container filtered, HashMap<String, String> result) {
 
-        ArrayList<VehicleDetails> list = getSortedData(searchString);
+        ArrayList<VehicleDetails> list = filterAndSearchController.getFilteredData(result, this.completeList);
+        displayListToView(filtered,list);
+    }
+    
+    public void displaySeachData(String searchKeyWord) {
+    	container.removeAll();
+    	ArrayList<VehicleDetails> result=filterAndSearchController.getSearchedData(searchKeyWord,this.completeList);
+        displayListToView(container ,result);   
+    }
+    
+    public void displayListToView(Container filtered, ArrayList<VehicleDetails> list) {
         JPanel basePanel = new JPanel();
         BoxLayout bl = new BoxLayout(basePanel, BoxLayout.Y_AXIS);
         filtered.add(basePanel);
@@ -323,53 +283,8 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         container.revalidate();
     }
 
-    
-    /*
-     * This method gets the sorted data and returns the vehicle list
-     */
-    private ArrayList<VehicleDetails> getSortedData(String searchString) {
-         ArrayList<VehicleDetails> vehicleList = new ArrayList<VehicleDetails>();
-         ResultSet rs;
-         try {
-             rs = dbConn.fetchAllDataWithFilters(searchString);
-
-             while (rs.next()) {
-            	 VehicleDetails vehicle = new VehicleDetails();
-
-                 vehicle.setId(rs.getString(1));
-                 vehicle.setBrand(rs.getString(3));
-                 vehicle.setModel(rs.getString(4));
-                 vehicle.setYear(rs.getString(5));
-                 vehicle.setType(rs.getString(6));
-
-                 String category = rs.getString(7);
-
-                 if (category.equals("NEW")) {
-                     vehicle.setCategory("NEW");
-                 } else {
-                     vehicle.setCategory("USED");
-                 }
-
-                 vehicle.setColor(rs.getString(8));
-
-                 float price = Float.parseFloat(rs.getString(9));
-                 vehicle.setPrice(price);
-
-                 float mileage = Float.parseFloat(rs.getString(10));
-                 vehicle.setMileage(mileage);
-
-                 vehicleList.add(vehicle);
-             }
-         } catch (SQLException se) {
-             se.printStackTrace();
-         }
-		return vehicleList;
-    }
-    
-    
-    /*
-     * This method creates the sorted components that would be displayed after search or sort
-     */
+         
+         
 	public void buildSortedComponent(JPanel panel, VehicleDetails vehicle, int i) {
 
         this.brandvalue = new JLabel(vehicle.getBrand() + "  - ");
@@ -458,7 +373,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				String wordSearch= textField.getText();
-				getSearchResult(wordSearch);
+				displaySeachData(wordSearch);
 				
 			}
 		});
@@ -466,8 +381,14 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                reset();
-                getSelectedOption().clear();
+                try {
+					reset();
+					getSelectedOption().clear();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+                
             }
         });
     }
@@ -521,9 +442,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     public void changeData() {
     	container.removeAll();
         HashMap<String, String> result = getSelectedOption();
-        String find = br.fetchSelectedResult(result);
-        System.out.println("search string:" + find);
-        displaySortedData(container, find);
+        displaySortedData(container, result);
     }
 
 /*
@@ -538,7 +457,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     /*
      * This method resets all the fields and options selected by the user
      */
-    public void reset() {
+    public void reset() throws SQLException {
         brand.setSelectedItem(null);
         type.setSelectedItem(null);
         category.setSelectedItem(null);
@@ -549,17 +468,9 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         priceMax.setSelectedItem(null);
         selectYear.setSelectedItem(null);
         container.removeAll();
-        displayAllData(container);
+        displayAllData(container,this.completeList);
     }
     
     
-    public void buildUseCase2UI() throws Exception {
-        this.buildComponent();
-        this.buildPanelAndFrame();
-        this.addListener();
-        this.frameOperations();
-
-    }
-   
     
 }
