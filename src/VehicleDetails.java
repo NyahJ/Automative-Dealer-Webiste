@@ -1,6 +1,14 @@
+import java.sql.Blob;
 
 public class VehicleDetails {
 	
+	@Override
+	public String toString() {
+		return "VehicleDetails [id=" + id + ", brand=" + brand + ", model=" + model + ", year=" + year + ", type="
+				+ type + ", category=" + category + ", color=" + color + ", price=" + price + ", mileage=" + mileage
+				+ ", salePrice=" + salePrice + "]";
+	}
+
 	private String id;
     private String brand;
     private String model;
@@ -11,8 +19,17 @@ public class VehicleDetails {
     private float price;
     private float mileage;
     private float salePrice;
+    private Blob image;
 
-    public void setId(String id){
+    public Blob getImage() {
+		return image;
+	}
+
+	public void setImage(Blob image) {
+		this.image = image;
+	}
+
+	public void setId(String id){
         this.id = id;
     }
 

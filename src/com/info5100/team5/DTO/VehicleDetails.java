@@ -1,5 +1,7 @@
 package com.info5100.team5.DTO;
 
+import java.sql.Blob;
+
 public class VehicleDetails {
 
     private String id;
@@ -21,6 +23,13 @@ public class VehicleDetails {
     private float mileage;
 
     private float salePrice;
+	/*
+	 * private Blob image;
+	 * 
+	 * public Blob getImage() { return image; }
+	 * 
+	 * public void setImage(Blob image) { this.image = image; }
+	 */
 
 
     public void setId(String id) {

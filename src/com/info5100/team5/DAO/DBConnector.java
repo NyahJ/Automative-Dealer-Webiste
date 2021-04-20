@@ -10,9 +10,10 @@ public class DBConnector {
     public Connection getDBConnection() throws SQLException {
 
         String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-        String dbURL = "jdbc:sqlserver://boyce.coe.neu.edu:1433; DatabaseName=Jaya";
-        String userid = "INFO6210";  
-        String passwd = "NEUHusky!";
+		
+		  String dbURL = "jdbc:sqlserver://boyce.coe.neu.edu:1433; DatabaseName=Jaya";
+		  String userid = "INFO6210"; String passwd = "NEUHusky!";
+		 
        
 
         try {
@@ -23,9 +24,9 @@ public class DBConnector {
         }
         return conn;
     }
-
     
     public ResultSet queryExecution(String query) throws SQLException {
+    	System.out.println("in queryExecution  "+query);
         conn = getDBConnection();
 
         try {
@@ -37,30 +38,5 @@ public class DBConnector {
         }
         return null;
     }
-
-    public ResultSet fetchAllData() throws SQLException {
-        String query = "select * from Automobiles";
-        System.out.println("***fetching all vehicle details***"  +query);
-        data = queryExecution(query);
-        return data;
-    }
-
-
-    public ResultSet fetchAllDataWithFilters(String parameters) throws SQLException {
-        String query = "select * from Automobiles where " + parameters ;
-        System.out.println("***fetching filtered vehicle details***"  +query);
-        data = queryExecution(query);
-        return data;
-    }
-
-    public ResultSet fetchDistinctValues(String parameter) throws SQLException {
-        String query = "select distinct " + parameter + " " + "from Automobiles ";
-        System.out.println("***fetching distinct  values for*** "+ parameter     +query);
-        data = queryExecution(query);
-        return data;
-    }
-
-
-   
 }
 
