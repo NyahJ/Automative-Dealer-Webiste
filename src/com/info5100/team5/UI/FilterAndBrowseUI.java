@@ -32,7 +32,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             priceMinLabel, priceMaxLabel, yearLabel, mileageLabel,brandvalue, modelvalue, yearvalue,categoryvalue, colorvalue, mileagevalue,pricevalue,space,empty;
     private JComboBox brand, model, type, category, color, priceMin, priceMax, selectYear, mileage;
     private JButton clearBtn;
-    private Button viewDetailBtn;
+    private Button viewDetailBtn,requestQuoteBtn;
     private ArrayList<VehicleDetails> completeList;
     
     
@@ -96,7 +96,15 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         priceMin = new JComboBox(new String[]{"0", "1000", "2000", "3000", "4000", "5000"});
         priceMax = new JComboBox(new String[]{"15000", "25000", "35000", "45000", "55000", "65000"});
         selectYear = new JComboBox(new String[]{"2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019","2020","2021"});
-        reset();
+        try {
+			reset();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         clearBtn = new JButton("Reset");
 
         brand.setEditable(false);
@@ -204,8 +212,11 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     /*
      * This method displays all the vehicle details on UI
      */
-    public void displayAllData(Container container,ArrayList<VehicleDetails> completeList) throws SQLException {
+    public void displayAllData(Container container,ArrayList<VehicleDetails> completeList) throws SQLException, IOException {
     	container.revalidate();
+    	
+    	// Set the Bounds for container
+    	container.setPreferredSize(new Dimension(500,600));
      frame.add(container, BorderLayout.SOUTH);
        // ArrayList<VehicleDetails> list = filterAndSearchController.getAllCars();
         JPanel basepanel = new JPanel();
@@ -214,7 +225,8 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         container.add(basepanel);
         JScrollPane sp = new JScrollPane(basepanel);
         container.add(sp);
-        basepanel.setLayout(new GridBagLayout());
+        //basepanel.setLayout(new GridBagLayout());
+        basepanel.setLayout(new WrapLayout());
         //basepanel.setPreferredSize(new Dimension(100, 100));
 
         if (completeList.size() == 0) {
@@ -233,6 +245,8 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             panel.setLayout(fl);
             buildSortedComponent(panel, car, i);
             panel.setBorder(BorderFactory.createBevelBorder(1));
+            // TEST!!!
+            panel.setPreferredSize(new Dimension(300,500));
             basepanel.add(panel);
             basepanel.add(Box.createVerticalStrut(15));
 
@@ -242,27 +256,31 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     /*
      * This method displays only the sorted vehicle details on UI
      */
-    public void displaySortedData(Container filtered, HashMap<String, String> result) {
+    public void displaySortedData(Container filtered, HashMap<String, String> result) throws IOException {
 
         ArrayList<VehicleDetails> list = filterAndSearchController.getFilteredData(result, this.completeList);
         displayListToView(filtered,list);
     }
     
-    public void displaySeachData(String searchKeyWord) {
+    public void displaySeachData(String searchKeyWord) throws IOException {
     	container.removeAll();
     	ArrayList<VehicleDetails> result=filterAndSearchController.getSearchedData(searchKeyWord,this.completeList);
         displayListToView(container ,result);   
     }
     
-    public void displayListToView(Container filtered, ArrayList<VehicleDetails> list) {
+    public void displayListToView(Container filtered, ArrayList<VehicleDetails> list) throws IOException {
         JPanel basePanel = new JPanel();
         BoxLayout bl = new BoxLayout(basePanel, BoxLayout.Y_AXIS);
         filtered.add(basePanel);
+        //Set Dimension of Container
+        filtered.setPreferredSize(new Dimension(500,600));
         basePanel.setBackground(Color.DARK_GRAY);
         JScrollPane sp = new JScrollPane(basePanel);
         filtered.add(sp);
        // filtered.setLayout(new GridLayout());
-        basePanel.setLayout(new GridBagLayout());
+        //basePanel.setLayout(new GridBagLayout());
+        
+        basePanel.setLayout(new WrapLayout());
         if (list.size() == 0) {
             JPanel panelempty = new JPanel();
             panelempty.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -275,6 +293,8 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             JPanel panel = new JPanel();
             FlowLayout fl = new FlowLayout();
             panel.setLayout(fl);
+            //Test Panel PreferredSize
+            panel.setPreferredSize(new Dimension(300,500));
             buildSortedComponent(panel, car, i);
             panel.setBorder(BorderFactory.createBevelBorder(1));
             basePanel.add(panel);
@@ -285,8 +305,19 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 
          
          
-	public void buildSortedComponent(JPanel panel, VehicleDetails vehicle, int i) {
-
+	public void buildSortedComponent(JPanel panel, VehicleDetails vehicle, int i) throws IOException {
+		//ImageLabel
+		/**
+		JLabel imageLabel = new JLabel();
+		String path = "https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/2019-honda-civic-sedan-1558453497.jpg?crop=1xw:0.9997727789138833xh;center,top&resize=480:*";
+		
+    	URL url = new URL(path);
+        BufferedImage image = null;
+        image = ImageIO.read(url);
+        ImageIcon icon = new ImageIcon(image);
+        imageLabel.setIcon(icon);
+        **/
+		
         this.brandvalue = new JLabel(vehicle.getBrand() + "  - ");
         this.modelvalue = new JLabel(vehicle.getModel() + "                    ");
         this.year = new JLabel("Year : ");
@@ -298,6 +329,11 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         this.pricelabel = new JLabel("Price:");
         this.pricevalue = new JLabel(String.valueOf("$" + vehicle.getPrice()) + "0" + "         ");
         this.viewDetailBtn = new Button("View Detail");
+        
+        // Request Quote Button
+        this.requestQuoteBtn = new Button("Request Quote");
+        requestQuoteBtn.setBackground(Color.YELLOW);
+        
         viewDetailBtn.setBackground(Color.yellow);
         this.space = new JLabel("");
 
@@ -319,6 +355,10 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
         createPanel2(jp1, pricelabel, pricevalue);
         createPanel1(jp1, space);
         jp1.add(viewDetailBtn);
+        jp1.add(requestQuoteBtn);
+        
+        // ADD the ImageLabel;
+        //jp1.add(imageLabel);
         viewDetailBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -373,7 +413,12 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				String wordSearch= textField.getText();
-				displaySeachData(wordSearch);
+				try {
+					displaySeachData(wordSearch);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				
 			}
 		});
@@ -382,7 +427,12 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-					reset();
+					try {
+						reset();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					getSelectedOption().clear();
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
@@ -396,7 +446,12 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     @Override
     public void itemStateChanged(ItemEvent event) {
         if (event.getStateChange() == ItemEvent.SELECTED) {
-            changeData();
+            try {
+				changeData();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
         }
     }
@@ -439,7 +494,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     /*
      * This method updates the display data after the sort
      */
-    public void changeData() {
+    public void changeData() throws IOException {
     	container.removeAll();
         HashMap<String, String> result = getSelectedOption();
         displaySortedData(container, result);
@@ -457,7 +512,7 @@ public class FilterAndBrowseUI extends JFrame implements ItemListener {
     /*
      * This method resets all the fields and options selected by the user
      */
-    public void reset() throws SQLException {
+    public void reset() throws SQLException, IOException {
         brand.setSelectedItem(null);
         type.setSelectedItem(null);
         category.setSelectedItem(null);
